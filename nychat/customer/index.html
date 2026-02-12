@@ -3,11 +3,172 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NY線上客服後台系統</title>
+    <title>NY AGENT CONSOLE</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-    <link href="../css/server.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;700&display=swap" rel="stylesheet">
     <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <style>
+        body {
+            font-family: "Songti TC", "Noto Serif TC", "SimSun", serif;
+            background-color: #e0e0e0;
+            color: #000;
+            display: flex;
+            min-height: 100vh;
+            flex-direction: column;
+        }
+
+        .main-container {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px 0;
+        }
+
+        .chat-card {
+            height: 80vh;
+            max-height: 600px;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            background: #fff;
+            border: 2px solid #000;
+            border-radius: 0 !important;
+            box-shadow: 10px 10px 0px rgba(0,0,0,0.5) !important;
+        }
+
+        .card-header {
+            background-color: #fff;
+            color: #000;
+            padding: 15px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 2px solid #000;
+        }
+
+        .header-title {
+            display: flex;
+            align-items: center;
+            font-size: 1.2rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+        }
+        .header-title i { margin-right: 10px; }
+
+        #header-status-dot {
+            height: 12px; 
+            width: 12px; 
+            border: 1px solid #000;
+            display: inline-block;
+        }
+
+        .card-content-area {
+            flex: 1;
+            overflow: hidden;
+            position: relative;
+            background-color: #fff;
+            display: flex;
+            flex-direction: column;
+        }
+
+        #status-area {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 20px;
+        }
+
+        #chat-box {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .card-footer {
+            padding: 15px 20px;
+            background-color: #000;
+            border-top: 2px solid #000;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .input-field input {
+            border-bottom: 1px solid #666 !important;
+            color: #fff !important;
+            font-family: "Songti TC", serif;
+        }
+        .input-field input:focus {
+            border-bottom: 2px solid #fff !important;
+        }
+        .input-field label {
+            color: #999 !important;
+        }
+
+        .action-btn {
+            background: transparent;
+            border: 1px solid #fff;
+            color: #fff;
+            height: 40px;
+            width: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .action-btn:hover {
+            background: #fff;
+            color: #000;
+        }
+        .action-btn.danger {
+            border-color: #ff3333;
+            color: #ff3333;
+        }
+        .action-btn.danger:hover {
+            background: #ff3333;
+            color: #fff;
+        }
+
+        .msg {
+            padding: 10px 15px;
+            max-width: 80%;
+            word-wrap: break-word;
+            font-size: 15px;
+            border: 1px solid #000;
+            font-family: "Songti TC", serif;
+        }
+        .msg.mine {
+            background-color: #000;
+            color: #fff;
+            align-self: flex-end;
+        }
+        .msg.partner {
+            background-color: #fff;
+            color: #000;
+            align-self: flex-start;
+        }
+
+        .page-footer-custom {
+            text-align: center;
+            padding: 15px;
+            color: #000;
+            font-size: 0.9rem;
+            margin-top: auto;
+        }
+        
+        .spinner-layer {
+            border-color: #000 !important;
+        }
+    </style>
 </head>
 <body>
 
@@ -15,32 +176,28 @@
         <div class="row" style="width: 100%; margin-bottom: 0;">
             <div class="col s12 m8 offset-m2 l6 offset-l3">
                 
-                <div class="card z-depth-3 chat-card">
+                <div class="card chat-card">
                     
                     <div class="card-header">
                         <div class="header-title">
-                            <i class="material-icons">headset_mic</i>
-                            <span>客服 (Agent)</span>
+                            <i class="material-icons">admin_panel_settings</i>
+                            <span>AGENT CONSOLE</span>
                         </div>
-                        <span id="header-status-dot" style="height: 10px; width: 10px; background-color: #bdbdbd; border-radius: 50%; display: inline-block;"></span>
+                        <span id="header-status-dot" style="background-color: #ccc;"></span>
                     </div>
 
                     <div class="card-content-area">
                         
                         <div id="status-area">
                             <div class="preloader-wrapper big active">
-                                <div class="spinner-layer spinner-green-only">
-                                  <div class="circle-clipper left">
-                                    <div class="circle"></div>
-                                  </div><div class="gap-patch">
-                                    <div class="circle"></div>
-                                  </div><div class="circle-clipper right">
-                                    <div class="circle"></div>
-                                  </div>
+                                <div class="spinner-layer">
+                                  <div class="circle-clipper left"><div class="circle"></div></div>
+                                  <div class="gap-patch"><div class="circle"></div></div>
+                                  <div class="circle-clipper right"><div class="circle"></div></div>
                                 </div>
                             </div>
-                            <h5 id="status-text" class="grey-text text-darken-2" style="margin-top: 20px;">
-                                等待連線...
+                            <h5 id="status-text" class="grey-text text-darken-2" style="margin-top: 20px; font-weight:bold;">
+                                系統連線中...
                             </h5>
                         </div>
 
@@ -51,36 +208,34 @@
                     <div id="input-area-wrapper" class="card-footer" style="display: none;">
                         <div class="input-field">
                             <input id="msgInput" type="text" autocomplete="off">
-                            <label for="msgInput">回覆客人...</label>
+                            <label for="msgInput">回覆指令...</label>
                         </div>
                         
-                        <button onclick="sendMessage()" class="btn-floating btn-large waves-effect waves-light green tooltipped" data-position="top" data-tooltip="發送訊息">
+                        <button onclick="sendMessage()" class="action-btn tooltipped" data-position="top" data-tooltip="發送">
                             <i class="material-icons">send</i>
                         </button>
 
-                        <button onclick="nextCustomer()" class="btn-floating btn-large waves-effect waves-light red tooltipped" data-position="top" data-tooltip="結束並接下一位">
-                            <i class="material-icons">skip_next</i>
+                        <button onclick="disconnectCurrent()" class="action-btn danger tooltipped" data-position="top" data-tooltip="終止連線">
+                            <i class="material-icons">power_settings_new</i>
                         </button>
                     </div>
 
                 </div>
-                </div>
+            </div>
         </div>
     </div>
 
     <footer class="page-footer-custom">
-        Copyright © 2025 NTUB 11346061
+        NY ADMIN SYSTEM © 2026
     </footer>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
 
     <script>
-        //這個是要跟後端連線的位置！ 
         const socket = io("https://nytools.nasirlin.net/chat");
         
         let partnerId = null;
         
-        // DOM 元素
         const statusArea = document.getElementById('status-area');
         const statusText = document.getElementById('status-text');
         const chatBox = document.getElementById('chat-box');
@@ -88,48 +243,43 @@
         const msgInput = document.getElementById('msgInput');
         const headerDot = document.getElementById('header-status-dot');
 
-        // 初始化 Tooltips
         document.addEventListener('DOMContentLoaded', function() {
             var elems = document.querySelectorAll('.tooltipped');
             M.Tooltip.init(elems);
         });
 
-        // 1. 連線後告知身分
         socket.on('connect', () => {
             console.log("Agent Connected");
-            updateStatusText("已連線，等待系統分派客人...");
+            updateStatusText("已接入神經網路，等待請求...");
             socket.emit('agent_join');
-            headerDot.style.backgroundColor = "#ffeb3b"; // 黃燈 (準備中)
+            headerDot.style.backgroundColor = "#999"; 
         });
 
-        // 2. 接收狀態 (核心邏輯)
         socket.on('status', (data) => {
             console.log("Status:", data);
             
-            // 雖然 data.msg 有文字，但我們想用自定義的 UI 文字
             if (data.code === 'chatting') {
-                // 配對成功
                 partnerId = data.partnerId;
                 showChatUI(true);
-                chatBox.innerHTML = ''; // 清空舊對話
-                addMessage("⚡ 系統：已配對一位客人，開始對話！", 'system'); // 自定義系統提示
-                headerDot.style.backgroundColor = "#76ff03"; // 綠燈 (通話中)
-                M.toast({html: '新客人已接入！', classes: 'rounded green'});
+                chatBox.innerHTML = ''; 
+                addMessage("⚡ 系統：目標已鎖定，通訊開始。", 'system'); 
+                headerDot.style.backgroundColor = "#000"; 
             } else if (data.code === 'idle') {
-                // 閒置 / 等待中
                 partnerId = null;
                 showChatUI(false);
-                updateStatusText(data.msg); // "目前沒有客人，等待中..."
-                headerDot.style.backgroundColor = "#bdbdbd"; // 灰燈 (閒置)
+                updateStatusText(data.msg); 
+                headerDot.style.backgroundColor = "#ccc"; 
+            } else if (data.code === 'ended') {
+                addMessage("系統：對方訊號中斷。", 'system');
+                partnerId = null;
+                addResetButton();
             }
         });
 
-        // 3. 接收訊息
         socket.on('receive_message', (data) => {
             addMessage(data.msg, 'partner');
         });
 
-        // --- 輔助功能 ---
         function sendMessage() {
             const msg = msgInput.value.trim();
             if (msg && partnerId) {
@@ -139,30 +289,38 @@
             }
         }
 
-        // 綁定 Enter 鍵
         msgInput.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') sendMessage();
         });
 
-        function nextCustomer() {
-            if(confirm("確定要結束目前的對話，並尋找下一位客人嗎？")) {
-                 // 最簡單的方式：重整頁面，重新觸發 connect -> agent_join
-                 // 這樣可以確保狀態最乾淨
-                 location.reload();
+        function disconnectCurrent() {
+            if(confirm("確認終止當前通訊？")) {
+                socket.emit('end_chat');
+                addMessage("系統：通訊已手動終止。", 'system');
+                partnerId = null;
+                inputBox.style.display = 'none'; 
+                addResetButton();
             }
+        }
+
+        function addResetButton() {
+            const div = document.createElement('div');
+            div.style.textAlign = 'center';
+            div.style.padding = '20px';
+            div.innerHTML = `<button onclick="location.reload()" class="action-btn" style="width:auto; padding:0 20px; color:#000; border-color:#000; margin:0 auto;">尋找下一個目標</button>`;
+            chatBox.appendChild(div);
+            chatBox.scrollTop = chatBox.scrollHeight;
         }
 
         function addMessage(msg, type) {
             const div = document.createElement('div');
             div.className = `msg ${type}`;
-            // 系統訊息特殊處理
             if (type === 'system') {
-                div.style.fontSize = '0.8rem';
-                div.style.color = '#9e9e9e';
-                div.style.background = 'none';
-                div.style.boxShadow = 'none';
                 div.style.textAlign = 'center';
-                div.style.alignSelf = 'center';
+                div.style.border = 'none';
+                div.style.background = 'none';
+                div.style.color = '#888';
+                div.style.fontSize = '12px';
             }
             div.innerText = msg;
             chatBox.appendChild(div);
@@ -173,7 +331,6 @@
             statusText.innerText = text;
         }
 
-        // 切換顯示模式
         function showChatUI(isChatting) {
             if (isChatting) {
                 statusArea.style.display = 'none';

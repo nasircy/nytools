@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>NY Focus</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#333333">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="apple-touch-icon" href="https://i.meee.com.tw/oopvdzl.png">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root { 
+            --bg-body: #f0f2f5; 
+            --text-main: #333333; 
+            --accent-blue: #0277bd; 
+            --accent-dark: #2d2d2d; 
+            --radius-card: 20px; 
+            --radius-pill: 30px; 
+            --shadow-card: 0 4px 20px rgba(0,0,0,0.04); 
+        }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: var(--bg-body); margin: 0; padding: 20px 15px; color: var(--text-main); padding-bottom: 40px; -webkit-tap-highlight-color: transparent; min-height: 100vh; user-select: none; }
+        .container { max-width: 450px; margin: 0 auto; min-height: 90vh; display: flex; flex-direction: column; }
+        .hidden { display: none !important; }
+        
+        #view-auth { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: #f0f2f5; z-index: 5000; display: flex; justify-content: center; align-items: center; padding: 20px; }
+        .auth-card { background: white; padding: 40px; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); width: 100%; max-width: 360px; text-align: center; }
+        .auth-title { margin: 0 0 5px 0; color: #333; font-size: 28px; letter-spacing: 1px; }
+        .auth-subtitle { color: #888; font-size: 14px; margin-bottom: 30px; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding: 0 5px; }
+        .user-pill { display: flex; align-items: center; gap: 10px; background: #fff; padding: 5px 15px 5px 5px; border-radius: 50px; box-shadow: 0 2px 5px rgba(0,0,0,0.03); }
+        .avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--accent-dark); color: white; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 14px; overflow: hidden; }
+        .menu-btn { background: white; border: none; font-size: 18px; color: #333; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 5px rgba(0,0,0,0.05); cursor: pointer; }
+        
+        .menu-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.3); z-index: 2000; opacity: 0; pointer-events: none; transition: opacity 0.3s; backdrop-filter: blur(2px); }
+        .menu-overlay.open { opacity: 1; pointer-events: auto; }
+        .side-menu { position: fixed; top: 0; right: -280px; width: 260px; height: 100%; background: white; z-index: 2001; box-shadow: -5px 0 20px rgba(0,0,0,0.1); transition: right 0.3s cubic-bezier(0.4, 0, 0.2, 1); padding: 25px; box-sizing: border-box; display: flex; flex-direction: column; }
+        .side-menu.open { right: 0; }
+        .menu-item { display: flex; align-items: center; gap: 15px; padding: 15px; color: #666; text-decoration: none; font-weight: 500; border-radius: 12px; transition: background 0.2s; margin-bottom: 5px; cursor: pointer; }
+        .menu-item:hover { background: #f5f5f5; color: #333; }
+        .menu-item.active { background: #e3f2fd; color: #0277bd; font-weight: bold; }
+        .card { background: white; border-radius: var(--radius-card); padding: 25px; box-shadow: var(--shadow-card); margin-bottom: 20px; animation: fadeIn 0.4s ease-out; position: relative; }
+        .btn-main { width: 100%; padding: 16px; border: none; border-radius: 16px; background: var(--accent-dark); color: white; font-weight: bold; font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 4px 15px rgba(45,45,45,0.2); transition: transform 0.1s; }
+        .btn-main:active { transform: scale(0.98); }
+        .btn-sec { width: 100%; padding: 12px; border: none; border-radius: 12px; background: #f0f2f5; color: #555; font-weight: bold; font-size: 14px; cursor: pointer; text-align: center; }
+        .form-label { font-size: 12px; color: #999; margin-bottom: 8px; font-weight: 600; display: block; }
+        select, input, textarea { width: 100%; padding: 14px; border: 1px solid #eee; border-radius: 12px; background: #f9f9f9; outline: none; font-size: 15px; margin-bottom: 15px; box-sizing: border-box; appearance: none; font-family: inherit; }
+        .flashcard-container { perspective: 1000px; margin-bottom: 25px; }
+        .flashcard { background: white; border-radius: var(--radius-card); box-shadow: var(--shadow-card); padding: 40px 20px; text-align: center; position: relative; transition: transform 0.6s, box-shadow 0.3s; transform-style: preserve-3d; cursor: pointer; min-height: 200px; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .flashcard.flipped { transform: rotateY(180deg); }
+        .flashcard.flipped .word-text, .flashcard.flipped .word-type { opacity: 0.1; } 
+        .flashcard.flipped .word-mean { display: block; transform: rotateY(180deg); animation: fadeIn 0.4s ease-out; }
+        .word-text { font-size: 36px; font-weight: 800; color: #333; margin-bottom: 8px; letter-spacing: -0.5px; }
+        .word-type { font-size: 14px; color: #888; font-style: italic; background: #f5f5f5; padding: 4px 12px; border-radius: 12px; margin-bottom: 10px; }
+        .word-mean { font-size: 20px; color: #444; margin-top: 15px; display: none; font-weight: 500; }
+        .hint-text { position:absolute; bottom:20px; font-size:12px; color:#ddd; font-weight:500; }
+        
+        .controls { display: flex; gap: 12px; margin-bottom: 30px; justify-content: center; }
+        .ctrl-btn { flex: 1; padding: 16px; border: none; border-radius: 16px; background: white; font-weight: bold; color: #555; box-shadow: 0 4px 15px rgba(0,0,0,0.03); cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; }
+        .ctrl-btn.primary { background: var(--accent-dark); color: white; flex: 1.5; box-shadow: 0 4px 15px rgba(45,45,45,0.2); }
+
+        .list-header { padding: 20px 25px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; background: white; border-radius: 20px; transition: background 0.2s; }
+        .voc-list-item { display: flex; justify-content: space-between; align-items: center; padding: 15px 5px; border-bottom: 1px solid #f5f5f5; cursor: pointer; }
+        
+        .tabs { display: flex; gap: 10px; margin-bottom: 20px; padding: 0 5px; }
+        .pill { padding: 10px 20px; border-radius: var(--radius-pill); font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; border: 1px solid transparent; flex: 1; text-align: center; }
+        .pill.inactive { background: white; border-color: #eee; color: #999; }
+        .pill.active { background: var(--accent-dark); color: white; border-color: var(--accent-dark); box-shadow: 0 4px 10px rgba(0,0,0,0.15); }
+
+        .question-box { background: #e3f2fd; color: #0277bd; padding: 30px 20px; border-radius: 20px; text-align: center; font-size: 24px; font-weight: 800; margin-bottom: 25px; min-height: 80px; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 10px; }
+        .choices-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .choice-btn { background: white; border: 1px solid #eee; padding: 20px 10px; border-radius: 16px; font-weight: 500; color: #555; cursor: pointer; transition: all 0.2s; font-size: 15px; min-height: 70px; display: flex; align-items: center; justify-content: center; text-align: center; box-shadow: 0 2px 5px rgba(0,0,0,0.02); }
+        .choice-btn.correct { background: #e8f5e9; border-color: #4caf50; color: #2e7d32; font-weight: bold; }
+        .choice-btn.wrong { background: #ffebee; border-color: #ef5350; color: #c62828; opacity: 0.7; }
+        .choice-btn.disabled { pointer-events: none; }
+        #loading-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: white; z-index: 9999; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 15px; color: #666; font-size: 16px; }
+        .modal { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 3000; align-items: center; justify-content: center; padding: 20px; }
+        .modal-content { background: white; padding: 25px; border-radius: 24px; width: 100%; max-width: 300px; box-shadow: 0 10px 40px rgba(0,0,0,0.2); }
+        .footer { margin-top: auto; text-align: center; font-size: 12px; color: #ccc; padding: 20px 0; font-weight: 500; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body onclick="closeAllMenus()">
+
+    <div id="loading-overlay">
+        <i class="fas fa-spinner fa-spin" style="font-size:30px;"></i>
+        <div>正在同步資料...</div>
+    </div>
+
+    <div id="view-auth" class="hidden">
+        <div class="auth-card">
+            <h1 class="auth-title">NY Focus</h1>
+            <div class="auth-subtitle">Nasir 個人背單字神器</div>
+            <button class="btn-main" style="background:#06C755; color:white;" onclick="doLogin()">
+                <i class="fa-brands fa-line" style="font-size:24px;"></i> 使用 LINE 帳號登入
+            </button>
+        </div>
+    </div>
+
+    <div id="view-app" class="container hidden">
+        <div class="header">
+            <div class="user-pill">
+                <div class="avatar" id="user-avatar">U</div>
+                <span id="user-email" style="font-size:12px; color:#666; font-weight:500">Loading...</span>
+            </div>
+            <button class="menu-btn" onclick="toggleMenu(event)"><i class="fa-solid fa-bars"></i></button>
+        </div>
+
+        <div id="menu-overlay" class="menu-overlay" onclick="toggleMenu(event)"></div>
+        <div id="side-menu" class="side-menu" onclick="event.stopPropagation()">
+            <h2 style="margin:0 0 30px 10px; font-size:20px;">NY Focus</h2>
+            <div id="nav-flashcard" class="menu-item active" onclick="switchMainView('flashcard')"><i class="fa-solid fa-layer-group" style="width:24px; text-align:center;"></i> 單字卡</div>
+            <div id="nav-exam" class="menu-item" onclick="switchMainView('exam')"><i class="fa-solid fa-clipboard-check" style="width:24px; text-align:center;"></i> 測驗中心</div>
+            <div style="margin-top:auto">
+                <a href="#" onclick="doLogout()" class="menu-item" style="color:#d32f2f"><i class="fa-solid fa-arrow-right-from-bracket" style="width:24px; text-align:center;"></i> 登出</a>
+            </div>
+        </div>
+
+        <div id="view-flashcard-mode">
+            <div class="flashcard-container">
+                <div class="flashcard" id="flashcard" onclick="this.classList.toggle('flipped')">
+                    <div class="word-text">Ready</div>
+                    <span class="word-type">Start</span>
+                    <div class="word-mean">點擊翻面</div>
+                    <div class="hint-text">點擊卡片查看解釋</div>
+                </div>
+            </div>
+            <div class="controls">
+                <button class="ctrl-btn" onclick="fc_prevCard()"><i class="fa-solid fa-chevron-left"></i></button>
+                <button class="ctrl-btn primary" onclick="fc_openAddModal()"><i class="fa-solid fa-plus"></i> 新增</button>
+                <button class="ctrl-btn" onclick="fc_nextCard()"><i class="fa-solid fa-chevron-right"></i></button>
+            </div>
+            <div class="card" style="padding:0; overflow:hidden;">
+                <div class="list-header" onclick="fc_toggleList()">
+                    <div style="display:flex; align-items:center; gap:10px;">
+                        <h3 style="margin:0; font-size:16px; color:#666;">所有單字列表</h3>
+                        <span id="fc-count-badge" style="background:#f0f0f0; color:#999; font-size:12px; padding:2px 8px; border-radius:10px;">0</span>
+                    </div>
+                    <i id="fc-list-icon" class="fa-solid fa-chevron-down" style="transition:0.3s; color:#ccc;"></i>
+                </div>
+                <div id="fc-list-container" style="display:none; border-top:1px solid #f0f0f0; padding:0 20px 20px 20px;">
+                    <div id="fc-voc-list"></div>
+                </div>
+            </div>
+        </div>
+
+        <div id="view-exam-mode" class="hidden">
+            <div class="tabs">
+                <div id="tab-exam-start" class="pill active" onclick="ex_switchTab('exam')">開始測驗</div>
+                <div id="tab-exam-manage" class="pill inactive" onclick="ex_switchTab('manage')">題庫管理</div>
+            </div>
+            
+            <div id="subview-exam-main">
+                <div id="ex-setup" class="card">
+                    <h2 style="margin-top:0; font-size:20px; text-align:center;">測驗設定</h2>
+                    <label class="form-label">選擇題庫</label>
+                    <select id="ex-folder-select"><option value="ALL">📂 所有資料夾 (隨機)</option></select>
+                    <label class="form-label">測驗模式</label>
+                    <select id="ex-mode">
+                        <option value="listen-zh">🔊 聽發音 -> 選中文解釋</option>
+                        <option value="listen-en">🔊 聽發音 -> 選英文單字</option>
+                        <option value="see-en">👁️ 看英文 -> 選中文解釋</option>
+                        <option value="see-zh">👁️ 看中文 -> 選英文單字</option>
+                    </select>
+                    <label class="form-label">題目數量</label>
+                    <select id="ex-count">
+                        <option value="10" selected>10 題</option>
+                        <option value="20">20 題</option>
+                        <option value="50">50 題</option>
+                    </select>
+                    <button class="btn-main" onclick="ex_startExam()"><i class="fa-solid fa-play"></i> 開始測驗</button>
+                </div>
+                <div id="ex-running" class="card hidden">
+                    <div style="text-align:center; color:#0277bd; font-weight:700; font-size:14px; margin-bottom:20px;" id="ex-progress-text"></div>
+                    <div id="ex-question-box" class="question-box"></div>
+                    <button id="ex-btn-replay" class="btn-sec" style="margin:0 auto 20px auto; width:auto; display:none;" onclick="ex_replayAudio()"><i class="fa-solid fa-volume-high"></i> 重播</button>
+                    <div id="ex-choices-grid" class="choices-grid"></div>
+                    <button id="ex-btn-next" class="btn-main hidden" style="margin-top:20px;" onclick="ex_nextQuestion()">下一題 <i class="fa-solid fa-arrow-right"></i></button>
+                    <button class="btn-sec" style="margin-top:10px; color:#d32f2f; background:transparent;" onclick="ex_resetUI()">放棄測驗</button>
+                </div>
+                <div id="ex-result" class="card hidden" style="text-align:center;">
+                    <div style="font-size:50px; margin-bottom:10px;">🏆</div>
+                    <h2 style="margin:0; color:#555;">測驗完成</h2>
+                    <div style="font-size:48px; font-weight:800; color:#333; margin:10px 0;">
+                        <span id="ex-score-num" style="color:#0277bd;">0</span>
+                        <span style="font-size:20px; color:#999; font-weight:500;">/ <span id="ex-total-num"></span></span>
+                    </div>
+                    <div id="ex-result-list" style="text-align:left; background:#f9f9f9; padding:15px; border-radius:16px; margin:20px 0; max-height:200px; overflow-y:auto;"></div>
+                    <button class="btn-main" onclick="ex_resetUI()">再測一次</button>
+                </div>
+            </div>
+
+            <div id="subview-exam-manage" class="hidden">
+                <div class="card">
+                    <h2 style="margin-top:0; font-size:20px; text-align:center;">題庫管理</h2>
+                    <label class="form-label">選擇資料夾</label>
+                    <select id="manage-folder-select" onchange="loadManageList()">
+                        <option value="" disabled selected>請選擇...</option>
+                    </select>
+                    <div style="margin-top:15px; display:flex; gap:10px; flex-wrap:wrap;">
+                        <button class="btn-main" style="flex:1;" onclick="openAddQuestionModal()"><i class="fa-solid fa-plus"></i> 新增題目</button>
+                        <button class="btn-main" style="flex:1; background:#0277bd;" onclick="createNewFolder()"><i class="fa-solid fa-folder-plus"></i> 新增資料夾</button>
+                    </div>
+                </div>
+                <div id="manage-list-container" class="card hidden" style="padding:0; overflow:hidden;">
+                    <div id="manage-question-list" style="padding:10px;"></div>
+                </div>
+            </div>
+        </div>
+        <div class="footer">Copyright © 2025 Nasir</div>
+    </div>
+
+    <div id="fc-add-modal" class="modal" onclick="if(event.target === this) fc_closeModal()">
+        <div class="modal-content">
+            <h3 id="fc-modal-title" style="margin-top:0">新增單字卡</h3>
+            <input type="text" id="fc-inp-word" placeholder="英文單字">
+            <input type="text" id="fc-inp-type" placeholder="詞性">
+            <input type="text" id="fc-inp-mean" placeholder="中文解釋">
+            <button id="fc-modal-submit-btn" class="btn-main" onclick="fc_saveWord()">儲存</button>
+            <button class="btn-sec" onclick="fc_closeModal()" style="margin-top:10px; background:transparent;">取消</button>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'https://nytools.nasirlin.net';
+
+        if ('serviceWorker' in navigator) { 
+            window.addEventListener('load', () => { 
+                navigator.serviceWorker.register('./sw.js').then(reg => console.log('SW registered!', reg)).catch(err => console.log('SW failed', err)); 
+            }); 
+        }
+
+        let currentUser = null;
+        const uiLoading = document.getElementById('loading-overlay');
+        const uiAuth = document.getElementById('view-auth');
+        const uiApp = document.getElementById('view-app');
+
+        window.onload = async function() {
+            try {
+                const res = await fetch(`${API_BASE}/api/voc/me`, { credentials: 'include' });
+                const data = await res.json();
+                if (data.is_logged_in) {
+                    currentUser = data.user;
+                    document.getElementById('user-email').innerText = currentUser.name;
+                    if(currentUser.picture) document.getElementById('user-avatar').innerHTML = `<img src="${currentUser.picture}" style="width:100%;height:100%;object-fit:cover;">`;
+                    fc_init();
+                    loadExamFolders();
+                    initManageTab();
+                    uiLoading.classList.add('hidden'); uiAuth.classList.add('hidden'); uiApp.classList.remove('hidden');
+                } else {
+                    uiLoading.classList.add('hidden'); uiApp.classList.add('hidden'); uiAuth.classList.remove('hidden');
+                }
+            } catch(e) { console.error(e); uiLoading.classList.add('hidden'); uiAuth.classList.remove('hidden'); }
+        };
+
+function doLogin() {
+    const currentUrl = window.location.href;
+    window.location.href = `${API_BASE}/auth/line/login?returnTo=${encodeURIComponent(currentUrl)}`;
+}
+
+        function toggleMenu(e) { if(e) e.stopPropagation(); document.getElementById('side-menu').classList.toggle('open'); document.getElementById('menu-overlay').classList.toggle('open'); }
+        function closeAllMenus() { document.getElementById('side-menu').classList.remove('open'); document.getElementById('menu-overlay').classList.remove('open'); }
+        function switchMainView(view) {
+            closeAllMenus();
+            const vFc = document.getElementById('view-flashcard-mode'); const vEx = document.getElementById('view-exam-mode');
+            if (view === 'flashcard') { vFc.classList.remove('hidden'); vEx.classList.add('hidden'); document.getElementById('nav-flashcard').classList.add('active'); document.getElementById('nav-exam').classList.remove('active'); }
+            else { vFc.classList.add('hidden'); vEx.classList.remove('hidden'); document.getElementById('nav-flashcard').classList.remove('active'); document.getElementById('nav-exam').classList.add('active'); }
+        }
+
+        let fc_list = []; let fc_index = 0;
+        async function fc_init() {
+            try {
+                const res = await fetch(`${API_BASE}/api/voc/cards`, { credentials: 'include' });
+                fc_list = await res.json();
+                if(fc_list.length > 0) { document.getElementById('fc-count-badge').innerText = fc_list.length; fc_renderList(); fc_updateCardUI(); }
+                else { document.getElementById('fc-count-badge').innerText = "0"; fc_setEmpty(); }
+            } catch (err) { console.error(err); }
+        }
+        function fc_renderList() {
+            const el = document.getElementById('fc-voc-list'); el.innerHTML = "";
+            fc_list.forEach((v, idx) => {
+                const div = document.createElement('div'); div.className = 'voc-list-item';
+                div.onclick = () => { fc_index = idx; fc_updateCardUI(); window.scrollTo({top:0, behavior:'smooth'}); };
+                div.innerHTML = `<div><b>${v.word}</b> <small style="color:#888">${v.type}</small></div><div style="display:flex; gap:10px;"><span style="color:#666">${v.mean}</span><i class="fa-solid fa-trash" style="color:#ddd" onclick="fc_del(event, '${v.id}')"></i></div>`;
+                el.appendChild(div);
+            });
+        }
+        function fc_updateCardUI() {
+            if(!fc_list.length) return;
+            const card = document.getElementById('flashcard'); const v = fc_list[fc_index];
+            card.classList.remove('flipped');
+            setTimeout(() => { document.querySelector('.word-text').innerText = v.word; document.querySelector('.word-type').innerText = v.type; document.querySelector('.word-mean').innerText = v.mean; }, 150);
+        }
+        function fc_setEmpty() { const el = document.getElementById('fc-voc-list'); el.innerHTML = "<div style='text-align:center;padding:15px;color:#ccc'>暫無資料</div>"; document.querySelector('.word-text').innerText = "Empty"; document.querySelector('.word-mean').innerText = "請新增單字"; }
+        function fc_nextCard() { if(fc_list.length) { fc_index = (fc_index + 1) % fc_list.length; fc_updateCardUI(); } }
+        function fc_prevCard() { if(fc_list.length) { fc_index = (fc_index - 1 + fc_list.length) % fc_list.length; fc_updateCardUI(); } }
+        function fc_toggleList() { const con = document.getElementById('fc-list-container'); const icon = document.getElementById('fc-list-icon'); const isHidden = con.style.display === 'none'; con.style.display = isHidden ? 'block' : 'none'; icon.style.transform = isHidden ? 'rotate(180deg)' : 'rotate(0deg)'; }
+        function fc_openAddModal() { document.getElementById('fc-inp-word').value = ""; document.getElementById('fc-inp-type').value = ""; document.getElementById('fc-inp-mean').value = ""; document.getElementById('fc-add-modal').style.display = 'flex'; }
+        function fc_closeModal() { document.getElementById('fc-add-modal').style.display = 'none'; }
+        async function fc_saveWord() {
+            const w = document.getElementById('fc-inp-word').value.trim(); const t = document.getElementById('fc-inp-type').value.trim(); const m = document.getElementById('fc-inp-mean').value.trim();
+            if(!w || !m) return Swal.fire('請輸入內容');
+            try { await fetch(`${API_BASE}/api/voc/cards`, { method: 'POST', headers: {'Content-Type': 'application/json'}, credentials: 'include', body: JSON.stringify({ word: w, type: t, mean: m }) }); fc_closeModal(); Swal.fire({icon:'success', title:'已儲存', timer:1000, showConfirmButton:false}); fc_init(); } catch(e) { Swal.fire('Error'); }
+        }
+        async function fc_del(e, id) { e.stopPropagation(); if(confirm('刪除?')) { await fetch(`${API_BASE}/api/voc/cards/${id}`, { method: 'DELETE', credentials: 'include' }); fc_index = 0; fc_init(); } }
+
+        let ex_questions = [], ex_qIndex = 0, ex_score = 0, ex_mode = '', ex_history = [];
+        
+        async function loadExamFolders() {
+            try {
+                const res = await fetch(`${API_BASE}/api/voc/folders`, { credentials: 'include' });
+                const folders = await res.json();
+                const sel = document.getElementById('ex-folder-select');
+                sel.innerHTML = '<option value="ALL">📂 所有資料夾 (隨機)</option>';
+                folders.forEach(f => sel.innerHTML += `<option value="${f}">${f}</option>`);
+            } catch(e) { console.error("Load folders failed", e); }
+        }
+
+        function ex_switchTab(tab) {
+            const setup = document.getElementById('subview-exam-main'); const manage = document.getElementById('subview-exam-manage');
+            const t1 = document.getElementById('tab-exam-start'); const t2 = document.getElementById('tab-exam-manage');
+            if(tab === 'exam') { setup.classList.remove('hidden'); manage.classList.add('hidden'); t1.className = 'pill active'; t2.className = 'pill inactive'; }
+            else { setup.classList.add('hidden'); manage.classList.remove('hidden'); t1.className = 'pill inactive'; t2.className = 'pill active'; initManageTab(); }
+        }
+
+        async function ex_startExam() {
+            ex_mode = document.getElementById('ex-mode').value;
+            const folder = document.getElementById('ex-folder-select').value;
+            const count = parseInt(document.getElementById('ex-count').value);
+            try {
+                const res = await fetch(`${API_BASE}/api/voc/exam?folder=${encodeURIComponent(folder)}`, { credentials: 'include' });
+                const pool = await res.json();
+                if(pool.length < 5) return Swal.fire('題庫題目不足 (至少5題)');
+                ex_questions = pool.slice(0, count);
+                ex_qIndex = 0; ex_score = 0; ex_history = [];
+                document.getElementById('ex-setup').classList.add('hidden');
+                document.getElementById('ex-running').classList.remove('hidden');
+                document.getElementById('ex-result').classList.add('hidden');
+                ex_renderQuestion();
+            } catch(e) { Swal.fire('讀取題庫失敗'); }
+        }
+
+        function ex_renderQuestion() {
+            const q = ex_questions[ex_qIndex];
+            const box = document.getElementById('ex-question-box');
+            document.getElementById('ex-progress-text').innerText = `${ex_qIndex+1} / ${ex_questions.length}`;
+            document.getElementById('ex-btn-next').classList.add('hidden');
+            document.getElementById('ex-btn-replay').style.display = 'none';
+            box.innerHTML = '';
+            if(ex_mode.includes('listen')) { box.innerHTML = '<i class="fa-solid fa-volume-high"></i> Listen'; document.getElementById('ex-btn-replay').style.display = 'block'; ex_speak(q.word); }
+            else if(ex_mode === 'see-en') box.innerText = q.word;
+            else box.innerText = q.mean;
+            const isAnsEn = (ex_mode === 'listen-en' || ex_mode === 'see-zh');
+            const ans = isAnsEn ? q.word : q.mean;
+            let choices = ex_questions.filter(v => (isAnsEn?v.word:v.mean) !== ans).sort(()=>0.5-Math.random()).slice(0,3).map(v => isAnsEn?v.word:v.mean);
+            if(choices.length < 3) choices = choices.concat(['Apple','Banana','Cat'].slice(0, 3-choices.length));
+            choices.push(ans);
+            const grid = document.getElementById('ex-choices-grid'); grid.innerHTML = '';
+            choices.sort(()=>0.5-Math.random()).forEach(txt => {
+                const btn = document.createElement('div'); btn.className = 'choice-btn'; btn.innerText = txt;
+                btn.onclick = () => {
+                    document.querySelectorAll('.choice-btn').forEach(b => b.classList.add('disabled'));
+                    if(txt === ans) { btn.classList.add('correct'); ex_score++; }
+                    else { btn.classList.add('wrong'); document.querySelectorAll('.choice-btn').forEach(b=>{if(b.innerText===ans) b.classList.add('correct')}); }
+                    ex_history.push({q:ex_qIndex+1, isCorrect:(txt===ans), correct:ans});
+                    document.getElementById('ex-btn-next').classList.remove('hidden');
+                };
+                grid.appendChild(btn);
+            });
+        }
+
+        async function ex_nextQuestion() {
+            ex_qIndex++;
+            if(ex_qIndex < ex_questions.length) ex_renderQuestion();
+            else {
+                document.getElementById('ex-running').classList.add('hidden');
+                document.getElementById('ex-result').classList.remove('hidden');
+                document.getElementById('ex-score-num').innerText = ex_score;
+                document.getElementById('ex-total-num').innerText = ex_questions.length;
+                const list = document.getElementById('ex-result-list'); list.innerHTML = '';
+                ex_history.forEach(h => list.innerHTML += `<div style="border-bottom:1px solid #eee;padding:5px;display:flex;justify-content:space-between;font-size:14px"><span>#${h.q} ${h.isCorrect?'✅':'❌'}</span><span style="color:#999">${h.isCorrect?'':h.correct}</span></div>`);
+                await fetch(`${API_BASE}/api/voc/score`, { method: 'POST', headers: {'Content-Type': 'application/json'}, credentials: 'include', body: JSON.stringify({score: ex_score, total: ex_questions.length, mode: ex_mode}) });
+            }
+        }
+
+        function ex_resetUI() { document.getElementById('ex-running').classList.add('hidden'); document.getElementById('ex-result').classList.add('hidden'); document.getElementById('ex-setup').classList.remove('hidden'); }
+        function ex_speak(txt) { const u = new SpeechSynthesisUtterance(txt); u.lang = 'en-US'; speechSynthesis.speak(u); }
+        function ex_replayAudio() { ex_speak(ex_questions[ex_qIndex].word); }
+
+        async function initManageTab() {
+            try {
+                const res = await fetch(`${API_BASE}/api/voc/folders`, { credentials: 'include' });
+                const folders = await res.json();
+                const sel = document.getElementById('manage-folder-select');
+                sel.innerHTML = '<option value="" disabled selected>請選擇...</option>';
+                folders.forEach(f => sel.innerHTML += `<option value="${f}">${f}</option>`);
+            } catch(e) { console.error(e); }
+        }
+
+        async function loadManageList() {
+            const folder = document.getElementById('manage-folder-select').value;
+            if(!folder) return;
+            const res = await fetch(`${API_BASE}/api/voc/manage?folder=${encodeURIComponent(folder)}`, { credentials: 'include' });
+            const list = await res.json();
+            const container = document.getElementById('manage-list-container');
+            const listEl = document.getElementById('manage-question-list');
+            container.classList.remove('hidden');
+            listEl.innerHTML = '';
+            list.forEach(q => {
+                const div = document.createElement('div');
+                div.className = 'voc-list-item';
+                div.innerHTML = `<div><b>${q.word}</b> <small>${q.type}</small></div><div style="display:flex; gap:10px; align-items:center;"><span style="color:#666; font-size:14px;">${q.mean}</span><i class="fa-solid fa-trash" style="color:#d32f2f; cursor:pointer;" onclick="deleteQuestion(${q.id})"></i></div>`;
+                listEl.appendChild(div);
+            });
+        }
+
+        async function deleteQuestion(id) {
+            if(!confirm('確定刪除此題？')) return;
+            await fetch(`${API_BASE}/api/voc/questions/${id}`, { method: 'DELETE', credentials: 'include' });
+            loadManageList();
+        }
+
+        function openAddQuestionModal() {
+            const folder = document.getElementById('manage-folder-select').value;
+            if(!folder) return Swal.fire('請先選擇一個資料夾');
+            Swal.fire({
+                title: '新增題目到 ' + folder,
+                html: `<input id="swal-word" class="swal2-input" placeholder="英文單字"><input id="swal-type" class="swal2-input" placeholder="詞性"><input id="swal-mean" class="swal2-input" placeholder="中文解釋">`,
+                showCancelButton: true, confirmButtonText: '儲存',
+                preConfirm: () => {
+                    return { folder: folder, word: document.getElementById('swal-word').value, type: document.getElementById('swal-type').value, mean: document.getElementById('swal-mean').value }
+                }
+            }).then(async (result) => {
+                if (result.isConfirmed) {
+                    await fetch(`${API_BASE}/api/voc/questions`, { method: 'POST', headers: {'Content-Type': 'application/json'}, credentials: 'include', body: JSON.stringify(result.value) });
+                    Swal.fire('已新增'); loadManageList();
+                }
+            });
+        }
+
+        function createNewFolder() {
+            Swal.fire({
+                title: '建立新資料夾',
+                text: '請輸入新資料夾名稱，並至少新增一個單字',
+                input: 'text',
+                inputPlaceholder: '例如: 多益第一章',
+                showCancelButton: true,
+                confirmButtonText: '下一步'
+            }).then((result) => {
+                if(result.isConfirmed && result.value) {
+                    const newFolder = result.value;
+                    Swal.fire({
+                        title: '新增單字到: ' + newFolder,
+                        html: `<input id="swal-word" class="swal2-input" placeholder="英文單字"><input id="swal-type" class="swal2-input" placeholder="詞性"><input id="swal-mean" class="swal2-input" placeholder="中文解釋">`,
+                        confirmButtonText: '建立資料夾',
+                        preConfirm: () => {
+                            return { 
+                                folder: newFolder, 
+                                word: document.getElementById('swal-word').value, 
+                                type: document.getElementById('swal-type').value, 
+                                mean: document.getElementById('swal-mean').value 
+                            }
+                        }
+                    }).then(async (res2) => {
+                        if(res2.isConfirmed) {
+                            await fetch(`${API_BASE}/api/voc/questions`, { method: 'POST', headers: {'Content-Type': 'application/json'}, credentials: 'include', body: JSON.stringify(res2.value) });
+                            Swal.fire('建立成功！');
+                            initManageTab();
+                        }
+                    });
+                }
+            });
+        }
+    </script>
+</body>
+</html>
