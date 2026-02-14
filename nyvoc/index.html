@@ -93,8 +93,8 @@
         <div class="auth-card">
             <h1 class="auth-title">NY Focus</h1>
             <div class="auth-subtitle">Nasir 個人背單字神器</div>
-            <button class="btn-main" style="background:#06C755; color:white;" onclick="doLogin()">
-                <i class="fa-brands fa-line" style="font-size:24px;"></i> 使用 LINE 帳號登入
+            <button class="btn-main" style="background:#4285F4; color:white;" onclick="doLogin()">
+                <i class="fa-brands fa-google" style="font-size:24px;"></i> 使用 Google 帳號登入
             </button>
         </div>
     </div>
@@ -243,7 +243,8 @@
                 const data = await res.json();
                 if (data.is_logged_in) {
                     currentUser = data.user;
-                    document.getElementById('user-email').innerText = currentUser.name;
+                    // Google OAuth 取回來的是 user.email 或是 user.name，你可以選擇顯示哪一個
+                    document.getElementById('user-email').innerText = currentUser.email || currentUser.name;
                     if(currentUser.picture) document.getElementById('user-avatar').innerHTML = `<img src="${currentUser.picture}" style="width:100%;height:100%;object-fit:cover;">`;
                     fc_init();
                     loadExamFolders();
@@ -255,10 +256,14 @@
             } catch(e) { console.error(e); uiLoading.classList.add('hidden'); uiAuth.classList.remove('hidden'); }
         };
 
-function doLogin() {
-    const currentUrl = window.location.href;
-    window.location.href = `${API_BASE}/auth/line/login?returnTo=${encodeURIComponent(currentUrl)}`;
-}
+        function doLogin() {
+            const currentUrl = window.location.href;
+            window.location.href = `${API_BASE}/auth/google/login?returnTo=${encodeURIComponent(currentUrl)}`;
+        }
+
+        function doLogout() {
+            window.location.href = `${API_BASE}/api/voc/logout`;
+        }
 
         function toggleMenu(e) { if(e) e.stopPropagation(); document.getElementById('side-menu').classList.toggle('open'); document.getElementById('menu-overlay').classList.toggle('open'); }
         function closeAllMenus() { document.getElementById('side-menu').classList.remove('open'); document.getElementById('menu-overlay').classList.remove('open'); }
